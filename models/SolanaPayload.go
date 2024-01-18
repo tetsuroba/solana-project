@@ -1,10 +1,10 @@
 package models
 
 type SolanaPayload struct {
-	Type        string                 `json:"type"`
-	Description string                 `json:"description"`
-	Events      map[string]interface{} `json:"events"`
-	Fee         int64                  `json:"fee"`
-	FeePayer    string                 `json:"feePayer"`
-	Signature   string                 `json:"signature"`
+	Type        string                 `bson:"type"`
+	Description string                 `bson:"description"`
+	Events      map[string]interface{} `bson:"events"`
+	Fee         int64                  `bson:"fee"`
+	FeePayer    string                 `bson:"feePayer"`
+	Signature   string                 `bson:"signature"`
 }

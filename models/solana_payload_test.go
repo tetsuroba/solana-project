@@ -2,38 +2,28 @@ package models
 
 import (
 	"encoding/json"
+	"log"
+	"os"
 	"testing"
 )
 
 func TestSolanaPayloadUnmarshalling(t *testing.T) {
-	jsonInput := `{
-        "accountData": [],
-        "description": "5nM1CTQwKXFZo5yJYC8J1pgj32JW6Fx8DpQAtPZ8aiLw swapped 9.11111 USDC for 9.121867 USDC",
-        "events": {"swap": {}},
-        "fee": 23219,
-        "feePayer": "5nM1CTQwKXFZo5yJYC8J1pgj32JW6Fx8DpQAtPZ8aiLw",
-        "instructions": [],
-        "nativeTransfers": [],
-        "signature": "sfW8CComDyJH82uPNUZCxrtPdL8SkpVDQBQQmGSX97bgWm1MY3X6NYmkTKbZHRAb8C5dPvSknQjfQKRmL2vxh1d",
-        "slot": 242424604,
-        "source": "JUPITER",
-        "timestamp": 1705522253,
-        "tokenTransfers": [],
-        "transactionError": null,
-        "type": "SWAP"
-    }`
+	body, err := os.ReadFile("../test_data/solana_swap_example.json")
+	if err != nil {
+		log.Fatalf("unable to read file: %v", err)
+	}
 
-	var payload SolanaPayload
-	err := json.Unmarshal([]byte(jsonInput), &payload)
+	var payload []SolanaPayload
+	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		t.Errorf("Unmarshalling failed: %v", err)
 	}
 
 	// Test for presence and correctness of fields
-	if payload.Type != "SWAP" {
-		t.Errorf("Expected transaction type 'SWAP', got '%s'", payload.Type)
+	if payload[0].Type != "SWAP" {
+		t.Errorf("Expected transaction type 'SWAP', got '%s'", payload[0].Type)
 	}
-	if payload.Description == "" {
+	if payload[0].Description == "" {
 		t.Error("Expected non-empty description")
 	}
 }
