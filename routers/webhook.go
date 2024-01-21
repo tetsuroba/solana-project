@@ -14,6 +14,15 @@ var logHandler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog
 
 var logger = slog.New(logHandler)
 
+// WebhookHandler @Summary Webhook handler
+// @Description Webhook handler
+// @Tags Webhook
+// @Accept json
+// @Produce json
+// @Success 200 {object} string
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /webhook [post]
 func WebhookHandler(context *gin.Context) {
 	if context.Request.Method != "POST" {
 		logger.Error("Invalid request method", "method", context.Request.Method)

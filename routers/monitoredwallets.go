@@ -26,6 +26,14 @@ func NewMonitoredWalletsRouter(db *mongo.Collection, router *gin.RouterGroup) *M
 	return mwr
 }
 
+// getMonitoredWallet @Summary Get a monitored wallet by name
+// @Description Get a monitored wallet by name
+// @Tags Monitored Wallets
+// @Param name path string true "Monitored wallet name"
+// @Success 200 {object} Wallet
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /monitored_wallets/{name} [get]
 func (mwr *MonitoredWalletsRouter) getMonitoredWallet(c *gin.Context) {
 	// Extracting the name from the URL parameter
 	name := c.Param("name")
@@ -57,6 +65,16 @@ func (mwr *MonitoredWalletsRouter) getMonitoredWallet(c *gin.Context) {
 	c.JSON(http.StatusOK, wallet)
 }
 
+// updateMonitoredWallet @Summary Update a monitored wallet
+// @Description Update a monitored wallet
+// @Tags Monitored Wallets
+// @Param name path string true "Monitored wallet name"
+// @Param wallet body Wallet true "Monitored wallet object"
+// @Success 200 {object} Wallet
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /monitored_wallets/{name} [put]
 func (mwr *MonitoredWalletsRouter) updateMonitoredWallet(c *gin.Context) {
 	name := c.Param("name")
 
@@ -97,6 +115,11 @@ func (mwr *MonitoredWalletsRouter) updateMonitoredWallet(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedWallet)
 }
 
+// getAllMonitoredWallets @Summary Get all monitored wallets
+// @Description Get all monitored wallets
+// @Tags Monitored Wallets
+// @Success 200 {array} Wallet
+// @Failure 500 {object} Error
 func (mwr *MonitoredWalletsRouter) getAllMonitoredWallets(c *gin.Context) {
 	// Calling the service function
 	wallets, err := mwr.monitoredWalletsService.GetAllMonitoredWallets()
@@ -110,6 +133,14 @@ func (mwr *MonitoredWalletsRouter) getAllMonitoredWallets(c *gin.Context) {
 	c.JSON(http.StatusOK, wallets)
 }
 
+// addMonitoredWallet @Summary Add a monitored wallet
+// @Description Add a monitored wallet
+// @Tags Monitored Wallets
+// @Param wallet body Wallet true "Monitored wallet object"
+// @Success 201 {object} Wallet
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /monitored_wallets [post]
 func (mwr *MonitoredWalletsRouter) addMonitoredWallet(c *gin.Context) {
 	var wallet models.MonitoredWallet
 
@@ -136,6 +167,15 @@ func (mwr *MonitoredWalletsRouter) addMonitoredWallet(c *gin.Context) {
 	c.JSON(http.StatusCreated, wallet)
 }
 
+// deleteMonitoredWallet @Summary Delete a monitored wallet
+// @Description Delete a monitored wallet
+// @Tags Monitored Wallets
+// @Param name path string true "Monitored wallet name"
+// @Success 200 {object} Message
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /monitored_wallets/{name} [delete]
 func (mwr *MonitoredWalletsRouter) deleteMonitoredWallet(c *gin.Context) {
 	// Extracting the name from the URL parameter
 	name := c.Param("name")

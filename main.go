@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"log/slog"
 	"os"
 	"solana/db"
@@ -31,6 +33,7 @@ func main() {
 	}
 	routers.NewWalletsRouter(db.GetDB().Database("solana").Collection("wallets"), v1, salt)
 	routers.NewMonitoredWalletsRouter(db.GetDB().Database("solana").Collection("monitoredWallets"), v1)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.POST("/api/webhook", routers.WebhookHandler)
 	err = router.Run(":" + port)
