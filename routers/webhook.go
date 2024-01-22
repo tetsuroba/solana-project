@@ -43,5 +43,6 @@ func WebhookHandler(context *gin.Context) {
 		_ = context.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	logger.Info("Received transaction with signature ", "signature", payload[0].Signature)
+	broadcast <- payload[0]
+	context.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
