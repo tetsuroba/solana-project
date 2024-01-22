@@ -2,17 +2,22 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"slices"
+	"solana/clients"
 	"solana/models"
+	"solana/utils"
 )
 
 type MonitoredWalletsService struct {
 	db DBService
+	hc clients.HeliusClient
 }
 
-func NewMonitoredWalletsService(db DBService) *MonitoredWalletsService {
-	return &MonitoredWalletsService{db: db}
+func NewMonitoredWalletsService(db DBService, hc clients.HeliusClient) *MonitoredWalletsService {
+	return &MonitoredWalletsService{db: db, hc: hc}
 }
 
 func (mws *MonitoredWalletsService) GetMonitoredWalletByName(name string) (*models.MonitoredWallet, error) {
@@ -78,8 +83,27 @@ func (mws *MonitoredWalletsService) GetAllMonitoredWallets() ([]*models.Monitore
 }
 
 func (mws *MonitoredWalletsService) AddMonitoredWallet(wallet *models.MonitoredWallet) error {
+	webhookConfig, err := mws.hc.GetWebhookConfig()
+	if err != nil {
+		logger.Error("Error getting webhook config", "error", err)
+		return err
+	}
+	webhookConfig.AccountAddresses = append(webhookConfig.AccountAddresses, wallet.PublicKey)
+	webHookConfigRequest := &clients.WebhookConfigRequest{
+		WebhookURL:       webhookConfig.WebhookURL,
+		TransactionTypes: webhookConfig.TransactionTypes,
+		AccountAddresses: webhookConfig.AccountAddresses,
+		WebhookType:      webhookConfig.WebhookType,
+		AuthHeader:       webhookConfig.AuthHeader,
+	}
 
-	_, err := mws.db.InsertOne(context.TODO(), wallet)
+	_, err = mws.hc.UpdateWebhookConfig(webHookConfigRequest)
+	if err != nil {
+		logger.Error("Error updating webhook config", "error", err)
+		return err
+	}
+
+	_, err = mws.db.InsertOne(context.TODO(), wallet)
 	if err != nil {
 		return err
 	}
@@ -88,7 +112,38 @@ func (mws *MonitoredWalletsService) AddMonitoredWallet(wallet *models.MonitoredW
 }
 
 func (mws *MonitoredWalletsService) DeleteMonitoredWallet(name string) error {
-	_, err := mws.db.DeleteOne(context.Background(), bson.D{{"name", name}})
+	walletConfig, err := mws.GetMonitoredWalletByName(name)
+	if err != nil {
+		logger.Error("Error getting wallet", "error", err)
+		return err
+	}
+
+	webhookConfig, err := mws.hc.GetWebhookConfig()
+	if err != nil {
+		logger.Error("Error getting webhook config", "error", err)
+		return err
+	}
+
+	foundIndex := utils.Find(webhookConfig.AccountAddresses, walletConfig.PublicKey)
+	if foundIndex == -1 {
+		logger.Error("Wallet not found in webhook config", "wallet", walletConfig.PublicKey)
+		return fmt.Errorf("wallet not found in webhook config %s", walletConfig.PublicKey)
+	}
+	webhookConfig.AccountAddresses = slices.Delete(webhookConfig.AccountAddresses, foundIndex, foundIndex+1)
+	webHookConfigRequest := &clients.WebhookConfigRequest{
+		WebhookURL:       webhookConfig.WebhookURL,
+		TransactionTypes: webhookConfig.TransactionTypes,
+		AccountAddresses: webhookConfig.AccountAddresses,
+		WebhookType:      webhookConfig.WebhookType,
+		AuthHeader:       webhookConfig.AuthHeader,
+	}
+	_, err = mws.hc.UpdateWebhookConfig(webHookConfigRequest)
+	if err != nil {
+		logger.Error("Error updating webhook config", "error", err)
+		return err
+	}
+
+	_, err = mws.db.DeleteOne(context.Background(), bson.D{{"name", name}})
 	if err != nil {
 		logger.Error("Error deleting wallet", "error", err)
 		return err
@@ -99,7 +154,6 @@ func (mws *MonitoredWalletsService) DeleteMonitoredWallet(name string) error {
 func (mws *MonitoredWalletsService) UpdateMonitoredWallet(name string, updatedWallet *models.MonitoredWallet) (*models.MonitoredWallet, error) {
 	var wallet models.MonitoredWallet
 
-	// Finding the wallet by name
 	result := mws.db.FindOne(context.Background(), bson.D{{"name", name}})
 
 	if result.Err() != nil {
@@ -112,7 +166,6 @@ func (mws *MonitoredWalletsService) UpdateMonitoredWallet(name string, updatedWa
 		return nil, result.Err()
 	}
 
-	// Decoding the result into the wallet variable
 	err := result.Decode(&wallet)
 	if err != nil {
 		logger.Error("Error decoding wallet", "error", err)

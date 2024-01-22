@@ -4,7 +4,7 @@
 This project mainly focuses on the Solana blockchain.
 It supports the following features:
 - [x] Create a wallet
-- [ ] Monitor a wallet and send notifications when a transaction is made
+- [x] Monitor a wallet and send notifications when a transaction is made
 - [ ] Send a token swap transaction
 - [ ] Scan for profitable wallets
 

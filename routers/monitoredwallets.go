@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
+	"solana/clients"
 	"solana/models"
 	"solana/services"
 )
@@ -20,8 +21,9 @@ type MonitoredWalletsRouter struct {
 	monitoredWalletsService *services.MonitoredWalletsService
 }
 
-func NewMonitoredWalletsRouter(db *mongo.Collection, router *gin.RouterGroup) *MonitoredWalletsRouter {
-	mwr := &MonitoredWalletsRouter{monitoredWalletsService: services.NewMonitoredWalletsService(db)}
+func NewMonitoredWalletsRouter(db *mongo.Collection, router *gin.RouterGroup, heliusApiKey, heliusWebhookID string) *MonitoredWalletsRouter {
+	hc := clients.NewHeliusClient(heliusApiKey, heliusWebhookID)
+	mwr := &MonitoredWalletsRouter{monitoredWalletsService: services.NewMonitoredWalletsService(db, *hc)}
 	mwr.MonitoredWalletRegister(router)
 	return mwr
 }

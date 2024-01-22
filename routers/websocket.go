@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	clients   sync.Map // Connected clients
+	connected sync.Map // Connected connected
 	broadcast = make(chan models.SolanaPayload)
 )
 
@@ -28,7 +28,7 @@ func TransactionSocketHandler(c *gin.Context) {
 		return
 	}
 
-	clients.Store(conn, true)
+	connected.Store(conn, true)
 
 	err = conn.WriteJSON(gin.H{"message": "Connected to transaction socket"})
 	if err != nil {
@@ -37,13 +37,13 @@ func TransactionSocketHandler(c *gin.Context) {
 	}
 }
 
-// StartWebSocketManager starts a goroutine that sends messages to WebSocket clients
+// StartWebSocketManager starts a goroutine that sends messages to WebSocket connected
 func StartWebSocketManager() {
 	go func() {
 		for {
 			msg := <-broadcast
 
-			clients.Range(func(key, value interface{}) bool {
+			connected.Range(func(key, value interface{}) bool {
 				client, ok := key.(*websocket.Conn)
 				if !ok {
 					return true
@@ -66,5 +66,5 @@ func StartWebSocketManager() {
 }
 
 func disconnectClient(conn *websocket.Conn) {
-	clients.Delete(conn)
+	connected.Delete(conn)
 }
