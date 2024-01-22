@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestWebhookHandler(t *testing.T) {
+func TestSecurity(t *testing.T) {
 	t.Run("Encrypts password correctly", func(t *testing.T) {
 		key := []byte("byteslongpassphraseforencryption") // Key should be 16, 24, or 32 bytes long
 		password := "mySuperSecretPassword"
