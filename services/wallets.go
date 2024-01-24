@@ -2,10 +2,11 @@ package services
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"solana/models"
 	"solana/utils"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type WalletsService struct {
@@ -41,7 +42,7 @@ func (ws *WalletsService) GetWalletByName(name string) (*models.Wallet, error) {
 }
 
 func (ws *WalletsService) GetAllWallets() ([]*models.Wallet, error) {
-	var wallets []*models.Wallet
+	var wallets = make([]*models.Wallet, 0)
 
 	cursor, err := ws.db.Find(context.Background(), bson.D{})
 	if err != nil {
@@ -71,6 +72,7 @@ func (ws *WalletsService) GetAllWallets() ([]*models.Wallet, error) {
 		return nil, err
 	}
 
+	logger.Info("Found number of wallets", "count", len(wallets))
 	return wallets, nil
 }
 

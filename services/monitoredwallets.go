@@ -3,12 +3,13 @@ package services
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"slices"
 	"solana/clients"
 	"solana/models"
 	"solana/utils"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type MonitoredWalletsService struct {
@@ -46,7 +47,7 @@ func (mws *MonitoredWalletsService) GetMonitoredWalletByName(name string) (*mode
 }
 
 func (mws *MonitoredWalletsService) GetAllMonitoredWallets() ([]*models.MonitoredWallet, error) {
-	var wallets []*models.MonitoredWallet
+	var wallets = make([]*models.MonitoredWallet, 0)
 
 	// Finding all wallets
 	cursor, err := mws.db.Find(context.Background(), bson.D{})
