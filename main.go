@@ -1,14 +1,16 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
-	swaggerFiles "github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
 	"log/slog"
 	"os"
 	"solana/db"
 	"solana/routers"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 var logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
@@ -27,6 +29,7 @@ func main() {
 	heliusWebhookID := os.Getenv("HELIUS_WEBHOOK_ID")
 	logger.Info("Starting server on port " + port)
 	router := gin.Default()
+	router.Use(cors.Default())
 	v1 := router.Group("/api")
 	err = db.Init()
 	if err != nil {
