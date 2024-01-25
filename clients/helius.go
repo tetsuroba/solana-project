@@ -90,7 +90,7 @@ func (hc *HeliusClient) UpdateWebhookConfig(configRequest *WebhookConfigRequest)
 	requestBody, err := json.Marshal(configRequest)
 	if err != nil {
 		logger.Error("Error marshalling webhook config request", "error", err)
-		return nil, err
+		return nil, fmt.Errorf("error marshalling webhook config request")
 	}
 
 	client := &http.Client{}
@@ -98,14 +98,14 @@ func (hc *HeliusClient) UpdateWebhookConfig(configRequest *WebhookConfigRequest)
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(requestBody))
 	if err != nil {
 		logger.Error("Error creating webhook config request", "error", err)
-		return nil, err
+		return nil, fmt.Errorf("error creating webhook config request")
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Error("Error updating webhook config", "error", err)
-		return nil, err
+		return nil, fmt.Errorf("error updating webhook config")
 	}
 	defer func(Body io.ReadCloser) {
 		err = Body.Close()
@@ -116,20 +116,20 @@ func (hc *HeliusClient) UpdateWebhookConfig(configRequest *WebhookConfigRequest)
 	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("received non-200 status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("error from Helius with status code: %d", resp.StatusCode)
 	}
 
 	var updatedConfig WebhookConfig
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Error("Error reading webhook config body", "error", err)
-		return nil, err
+		return nil, fmt.Errorf("error reading webhook config body")
 	}
 
 	err = json.Unmarshal(body, &updatedConfig)
 	if err != nil {
 		logger.Error("Error unmarshalling webhook config", "error", err)
-		return nil, err
+		return nil, fmt.Errorf("error unmarshalling webhook config")
 	}
 
 	return &updatedConfig, nil

@@ -106,7 +106,8 @@ func (mws *MonitoredWalletsService) AddMonitoredWallet(wallet *models.MonitoredW
 
 	_, err = mws.db.InsertOne(context.TODO(), wallet)
 	if err != nil {
-		return err
+		logger.Error("Error inserting wallet into database", "error", err)
+		return fmt.Errorf("error inserting wallet into database")
 	}
 
 	return nil
