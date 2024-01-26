@@ -17,4 +17,11 @@ func TestHelperFunctions(t *testing.T) {
 			t.Errorf("Incorrect index returned %d should be %d", index, 3)
 		}
 	})
+	t.Run("Returns -1 when item is not found", func(t *testing.T) {
+		arr := []string{"0", "1", "2", "3", "4", "5"}
+		index := Find(arr, "6")
+		if index != -1 {
+			t.Errorf("Incorrect index returned %d should be %d", index, -1)
+		}
+	})
 }

@@ -23,6 +23,9 @@ func main() {
 		logger.Error("Error loading .env file")
 		panic(err)
 	}
+	basicAuthAccounts := gin.Accounts{
+		os.Getenv("BASIC_AUTH_USERNAME"): os.Getenv("BASIC_AUTH_PASSWORD"),
+	}
 	port := os.Getenv("PORT")
 	salt := []byte(os.Getenv("SALT"))
 	heliusAPIKey := os.Getenv("HELIUS_API_KEY")
@@ -30,6 +33,7 @@ func main() {
 	logger.Info("Starting server on port " + port)
 	router := gin.Default()
 	router.Use(cors.Default())
+	router.Use(gin.BasicAuth(basicAuthAccounts))
 	v1 := router.Group("/api")
 	err = db.Init()
 	if err != nil {
@@ -42,7 +46,10 @@ func main() {
 	v1.GET("/transactionSocket", routers.TransactionSocketHandler)
 	routers.StartWebSocketManager()
 
-	router.POST("/api/webhook", routers.WebhookHandler)
+	v1.GET("/auth", func(context *gin.Context) {
+		context.JSON(200, gin.H{"status": "ok"})
+	})
+	v1.POST("/webhook", routers.WebhookHandler)
 	err = router.Run(":" + port)
 	if err != nil {
 		logger.Error("Error starting server", err)

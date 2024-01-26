@@ -10,7 +10,7 @@ import (
 
 var (
 	connected sync.Map // Connected connected
-	broadcast = make(chan models.SolanaPayload)
+	broadcast = make(chan models.TransactionDetails)
 )
 
 var upgrader = websocket.Upgrader{

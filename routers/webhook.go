@@ -43,6 +43,14 @@ func WebhookHandler(context *gin.Context) {
 		_ = context.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	broadcast <- payload[0]
+
+	transactionDetail, err := payload[0].GetTransactionDetails()
+	if err != nil {
+		logger.Error("Error getting transaction details", "error", err)
+		_ = context.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	broadcast <- transactionDetail
 	context.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
