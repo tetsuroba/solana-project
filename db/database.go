@@ -20,8 +20,8 @@ var logger = slog.New(logHandler)
 
 var DB *mongo.Client
 
-func Init() error {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+func Init(dbURI string) error {
+	clientOptions := options.Client().ApplyURI(dbURI)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		logger.Error("Error connecting to MongoDB", "error", err)

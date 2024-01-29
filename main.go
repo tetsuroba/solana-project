@@ -41,8 +41,8 @@ func setupRouter() *gin.Engine {
 	return router
 }
 
-func initDB() {
-	err := db.Init()
+func initDB(dbURI string) {
+	err := db.Init(dbURI)
 	if err != nil {
 		logger.Error("Error initializing database", err)
 		panic(err)
@@ -63,6 +63,7 @@ func setupRoutes(router *gin.Engine) {
 
 	router.POST("/login", routers.Login)
 	auth := router.Group("/auth")
+	transactionsCache := router.Group("/transactionCache")
 	auth.Use(routers.AuthMiddleware())
 	{
 		auth.GET("", func(c *gin.Context) {
@@ -79,6 +80,11 @@ func setupRoutes(router *gin.Engine) {
 
 	routers.StartWebSocketManager()
 	v1.POST("/webhook", routers.WebhookHandler)
+
+	transactionsCache.POST("/clear", routers.ClearCacheHandler)
+	transactionsCache.GET("/all", routers.GetTransactionCacheHandler)
+	transactionsCache.GET("", routers.GetAllTransactionsAfterIDHandler)
+	transactionsCache.GET("/id", routers.GetLatestIDHandler)
 }
 
 func main() {
@@ -86,10 +92,11 @@ func main() {
 
 	port := os.Getenv("PORT")
 	logger.Info("Starting server on port " + port)
-
 	router := setupRouter()
 
-	initDB()
+	dbURI := os.Getenv("MONGODB_URI")
+
+	initDB(dbURI)
 
 	setupRoutes(router)
 
