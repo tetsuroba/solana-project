@@ -8,14 +8,6 @@ import (
 	"solana/services"
 )
 
-func (wr *WalletsRouter) WalletRegister(router *gin.RouterGroup) {
-	router.GET("/wallet/:name", wr.getWallet)
-	router.POST("/wallet", wr.addWallet)
-	router.DELETE("/wallet/:name", wr.deleteWallet)
-	router.PUT("/wallet/:name", wr.updateWallet)
-	router.GET("/wallet", wr.getAllWallets)
-}
-
 type WalletsRouter struct {
 	db             *mongo.Collection
 	walletsService *services.WalletsService
@@ -25,6 +17,14 @@ func NewWalletsRouter(db *mongo.Collection, router *gin.RouterGroup, salt []byte
 	wr := &WalletsRouter{db: db, walletsService: services.NewWalletsService(db, salt)}
 	wr.WalletRegister(router)
 	return wr
+}
+
+func (wr *WalletsRouter) WalletRegister(router *gin.RouterGroup) {
+	router.GET("/wallet/:name", wr.getWallet)
+	router.POST("/wallet", wr.addWallet)
+	router.DELETE("/wallet/:name", wr.deleteWallet)
+	router.PUT("/wallet/:name", wr.updateWallet)
+	router.GET("/wallet", wr.getAllWallets)
 }
 
 // getWallet @Summary Get a wallet by name

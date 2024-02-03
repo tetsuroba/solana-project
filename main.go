@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"solana/clients"
 	"solana/db"
 	"solana/routers"
 	"time"
@@ -56,14 +57,21 @@ func setupRoutes(router *gin.Engine) {
 	salt := []byte(os.Getenv("SALT"))
 	heliusAPIKey := os.Getenv("HELIUS_API_KEY")
 	heliusWebhookID := os.Getenv("HELIUS_WEBHOOK_ID")
+	rpcURL := os.Getenv("RPC_URL")
 
 	v1 := router.Group("/api")
-	v1.Use(gin.BasicAuth(basicAuthAccounts))
-	socket := router.Group("/socket")
-
-	router.POST("/login", routers.Login)
 	auth := router.Group("/auth")
+	socket := router.Group("/socket")
 	transactionsCache := router.Group("/transactionCache")
+
+	routers.SetupCachingRoutes(transactionsCache)
+
+	v1.Use(gin.BasicAuth(basicAuthAccounts))
+
+	socket.GET("/transactionSocket", routers.TransactionSocketHandler)
+	router.POST("/login", routers.Login)
+	v1.POST("/register", routers.Register)
+	v1.POST("/webhook", routers.WebhookHandler)
 	auth.Use(routers.AuthMiddleware())
 	{
 		auth.GET("", func(c *gin.Context) {
@@ -72,19 +80,15 @@ func setupRoutes(router *gin.Engine) {
 		})
 	}
 	routers.NewWalletsRouter(db.GetDB().Database("solana").Collection("wallets"), v1, salt)
+	hc := clients.NewHeliusClient(heliusAPIKey, heliusWebhookID)
 	routers.NewMonitoredWalletsRouter(db.GetDB().Database("solana").Collection("monitoredWallets"), v1, heliusAPIKey, heliusWebhookID)
+	sr := routers.NewScannerRouter(rpcURL, hc)
+	sr.SetupRoutes(v1)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	socket.GET("/transactionSocket", routers.TransactionSocketHandler)
-	v1.POST("/register", routers.Register)
 
 	routers.StartWebSocketManager()
-	v1.POST("/webhook", routers.WebhookHandler)
 
-	transactionsCache.POST("/clear", routers.ClearCacheHandler)
-	transactionsCache.GET("/all", routers.GetTransactionCacheHandler)
-	transactionsCache.GET("", routers.GetAllTransactionsAfterIDHandler)
-	transactionsCache.GET("/id", routers.GetLatestIDHandler)
 }
 
 func main() {

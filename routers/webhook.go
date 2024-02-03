@@ -22,6 +22,13 @@ var transactionCache = struct {
 	ID int64
 }{m: make(map[int64]models.TransactionDetails)}
 
+func SetupCachingRoutes(router *gin.RouterGroup) {
+	router.POST("/clear", ClearCacheHandler)
+	router.GET("/all", GetTransactionCacheHandler)
+	router.GET("", GetAllTransactionsAfterIDHandler)
+	router.GET("/id", GetLatestIDHandler)
+}
+
 // WebhookHandler @Summary Webhook handler
 // @Description Webhook handler
 // @Tags Webhook
